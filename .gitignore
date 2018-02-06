@@ -1,5 +1,6 @@
 nodes.dyn
 elems.dyn
 elems_pml.dyn
+bc.dyn
 PointLoads.dyn
 env/
