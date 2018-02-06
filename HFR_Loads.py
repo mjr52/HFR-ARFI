@@ -80,10 +80,8 @@ class HFRLoads:
         import os
         import numpy as np
 
-        HOME = os.environ.get('HOME')
-        sys.path.append(HOME + "/Desktop/Projects_US/fem/mesh")
-        import fem_mesh as fm
-        import GenMesh as mesh
+        from fem.mesh import fem_mesh as fm
+        from fem.mesh import GenMesh as mesh
 
         pos = mesh.calc_node_pos((0.0, self.xmax, 0.0, self.ymax, self.zmin, 0.0), self.numElem)
         mesh.writeNodes(pos)
