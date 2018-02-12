@@ -18,7 +18,7 @@ def main():
 class HFRLoads:
 
     def __init__(self, f_axmat, f_elevmat, f_latmat, axmat, elevmat, latmat,
-                 nodesdynfile="nodes.dyn", LCID=1, numElem = (10, 10, 10)):
+                 nodesdynfile="nodes.dyn", LCID=1, numElem = (10, 10, 50)):
         import os
 
         args = locals()
@@ -124,22 +124,22 @@ class HFRLoads:
         import numpy as np
         nodeIDs = self.nodeIDs
 
-        NODEFILE = open('PointLoads.dyn', 'w')
-        NODEFILE.write("*LOAD_NODE_POINT\n")
+        with open('PointLoads.dyn', 'w') as NODEFILE:
+            NODEFILE.write("*LOAD_NODE_POINT\n")
 
-        def writenode(nodeID, i, maptype, dir):
-            val = self.interps[maptype][i]
-            if not np.isnan(val) and val > (0.01*self.fmax):
-                NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
-                # NID, [1,2,3], LCID, MAGNITUDE, 0
+            def writenode(nodeID, i, maptype, dir):
+                val = self.interps[maptype][i]
+                if not np.isnan(val) and val > (0.01*self.fmax):
+                    NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
+                    # NID, [1,2,3], LCID, MAGNITUDE, 0
 
-        for i, nodeID in enumerate(nodeIDs['id']):
-            writenode(nodeID, i, 'xmap', 1)
-            writenode(nodeID, i, 'ymap', 2)
-            writenode(nodeID, i, 'zmap', 3)
+            for i, nodeID in enumerate(nodeIDs['id']):
+                writenode(nodeID, i, 'xmap', 1)
+                writenode(nodeID, i, 'ymap', 2)
+                writenode(nodeID, i, 'zmap', 3)
 
-        NODEFILE.write("*END\n")
-        NODEFILE.close()
+            NODEFILE.write("*END\n")
+            NODEFILE.close()
 
 if __name__ == "__main__":
     main()
