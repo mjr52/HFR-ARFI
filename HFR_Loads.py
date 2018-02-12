@@ -1,4 +1,6 @@
 def main():
+    import os
+    os.environ['HOME'] = 'C:/Users/mringel/Desktop/Projects_US/'
     p = HFRLoads('u_ax_3ap.mat', 'u_elev_3ap.mat', 'u_lat_3ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
     p.load_mats()
     p.make_mesh()
@@ -16,16 +18,17 @@ def main():
 class HFRLoads:
 
     def __init__(self, f_axmat, f_elevmat, f_latmat, axmat, elevmat, latmat,
-                 nodesdynfile="nodes.dyn", LCID=1, numElem = (150, 100, 500)):
-        self.f_axmat = f_axmat
-        self.f_elevmat = f_elevmat
-        self.f_latmat = f_latmat
-        self.axmat = axmat
-        self.elevmat = elevmat
-        self.latmat = latmat
-        self.LCID = LCID
-        self.nodesdynfile = nodesdynfile
-        self.numElem = numElem
+                 nodesdynfile="nodes.dyn", LCID=1, numElem = (10, 10, 50)):
+        import os
+
+        args = locals()
+        for k,v in args.items():
+            if type(v) is str:
+                try:
+                    os.path.isfile(v)
+                except FileNotFoundError:
+                    print("File doesn't exist")
+            setattr(self, k, v)
 
         self.nodeIDs = None
         self.xi = None
@@ -36,49 +39,37 @@ class HFRLoads:
         self.ymax = None
         self.zmin = None
         self.interps = None
+        self.fmax = None
 
     def load_mats(self):
         #LOAD MATLAB FORCE DATA
-        import scipy.io as sio
         import numpy as np
 
-        zforce = sio.loadmat(self.f_axmat, matlab_compatible=True)[self.f_axmat[:-4]]
-        yforce = sio.loadmat(self.f_elevmat, matlab_compatible=True)[self.f_elevmat[:-4]]
-        xforce = sio.loadmat(self.f_latmat, matlab_compatible=True)[self.f_latmat[:-4]]
+        def matload(filename):
+            import scipy.io as sio
+            return sio.loadmat(filename)[filename[:-4]]
 
-        z = sio.loadmat(self.axmat, matlab_compatible=True)[self.axmat[:-4]]
-        y = sio.loadmat(self.elevmat, matlab_compatible=True)[self.elevmat[:-4]]
-        x = sio.loadmat(self.latmat, matlab_compatible=True)[self.latmat[:-4]]
+        zforce, yforce, xforce = matload(self.f_axmat), matload(self.f_elevmat), matload(self.f_latmat)
+        z, y, x = matload(self.axmat), matload(self.elevmat), matload(self.latmat)
 
         # SHRINK X AND Y DIRECTIONS FOR Q SYMMETRY
-        ylocs = np.where(y>=0)[1]
-        xlocs = np.where(x>=0)[1]
-        zforce = zforce[0::1, xlocs, :]
-        zforce = zforce[:, 0::1, ylocs]
-        yforce = yforce[0::1, xlocs, :]
-        yforce = yforce[:, 0::1, ylocs]
-        xforce = xforce[0::1, xlocs, :]
-        xforce = xforce[:, 0::1, ylocs]
-        x = x[x>=0]
-        y = y[y>=0]
-        z = z.flatten()
-        x = x[0::1]
-        z = z[0::1]
-        z = z - max(z)
+        ylocs, xlocs = np.min(np.where(y>=0)[1]), np.min(np.where(x>=0)[1])
+        zforce, yforce, xforce = zforce[:, xlocs:, ylocs:], yforce[:, xlocs:, ylocs:], xforce[:, xlocs:, ylocs:]
 
-        self.xforce = xforce
-        self.yforce = yforce
-        self.zforce = zforce
-        self.xmax = np.max(x)
-        self.ymax = np.max(y)
-        self.zmin = np.min(z)
+        x, y = x[x>=0], y[y>=0]
+        z = z[:] - np.max(z[:])
 
+        self.xforce, self.yforce, self.zforce = xforce, yforce, zforce
+        self.xmax, self.ymax, self.zmin = np.max(x), np.max(y), np.min(z)
 
     def make_mesh(self):
         # MAKE MESH
         import sys
         import os
         import numpy as np
+
+        HOME = os.getenv('HOME')
+        sys.path.append(HOME)
 
         from fem.mesh import fem_mesh as fm
         from fem.mesh import GenMesh as mesh
@@ -107,9 +98,7 @@ class HFRLoads:
         # sio.savemat('newloads', data)
         '''
 
-        xforce = self.xforce
-        yforce = self.yforce
-        zforce = self.zforce
+        xforce, yforce, zforce  = self.xforce, self.yforce, self.zforce
         xnode, ynode, znode = self.numElem
 
         scale = ((znode+1)/np.shape(xforce)[0], (xnode+1)/np.shape(xforce)[1], (ynode+1)/np.shape(xforce)[2])
@@ -117,6 +106,7 @@ class HFRLoads:
         xmap = scipy.ndimage.zoom(xforce, scale, order=1)
         ymap = scipy.ndimage.zoom(yforce, scale, order=1)
         zmap = scipy.ndimage.zoom(zforce, scale, order=1)
+        self.fmax = np.nanmax([xmap, ymap, zmap])
 
         data = np.empty(np.size(xmap),
                         dtype=[('xmap', 'f4'), ('ymap', 'f4'), ('zmap', 'f4')])
@@ -132,20 +122,24 @@ class HFRLoads:
 
     def make_pointloads(self):
         # Check NodeIDs and xmaps the same size??
-
+        import numpy as np
         nodeIDs = self.nodeIDs
 
-        NODEFILE = open('PointLoads.dyn', 'w')
-        NODEFILE.write("*LOAD_NODE_POINT\n")
+        with open('PointLoads.dyn', 'w') as NODEFILE:
+            NODEFILE.write("*LOAD_NODE_POINT\n")
 
-        for i, nodeID in enumerate(nodeIDs['id']):
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 1, self.LCID, self.interps['xmap'][i], 0))
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 2, self.LCID, self.interps['ymap'][i], 0))
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 3, self.LCID, self.interps['zmap'][i], 0))
-            # NID, [1,2,3], LCID, MAGNITUDE, 0
+            def writenode(nodeID, i, maptype, dir):
+                val = self.interps[maptype][i]
+                if not np.isnan(val) and val > (0.01*self.fmax):
+                    NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
+                    # NID, [1,2,3], LCID, MAGNITUDE, 0
 
-        NODEFILE.write("*END\n")
-        NODEFILE.close()
+            for i, nodeID in enumerate(nodeIDs['id']):
+                writenode(nodeID, i, 'xmap', 1)
+                writenode(nodeID, i, 'ymap', 2)
+                writenode(nodeID, i, 'zmap', 3)
+
+            NODEFILE.write("*END\n")
 
 if __name__ == "__main__":
     main()
