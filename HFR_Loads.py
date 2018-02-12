@@ -70,6 +70,7 @@ class HFRLoads:
 
         HOME = os.getenv('HOME')
         sys.path.append(HOME)
+
         from fem.mesh import fem_mesh as fm
         from fem.mesh import GenMesh as mesh
 
