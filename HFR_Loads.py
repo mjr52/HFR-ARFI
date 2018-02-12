@@ -39,6 +39,7 @@ class HFRLoads:
         self.ymax = None
         self.zmin = None
         self.interps = None
+        self.fmax = None
 
     def load_mats(self):
         #LOAD MATLAB FORCE DATA
@@ -96,9 +97,7 @@ class HFRLoads:
         # sio.savemat('newloads', data)
         '''
 
-        xforce = self.xforce
-        yforce = self.yforce
-        zforce = self.zforce
+        xforce, yforce, zforce  = self.xforce, self.yforce, self.zforce
         xnode, ynode, znode = self.numElem
 
         scale = ((znode+1)/np.shape(xforce)[0], (xnode+1)/np.shape(xforce)[1], (ynode+1)/np.shape(xforce)[2])
@@ -106,6 +105,7 @@ class HFRLoads:
         xmap = scipy.ndimage.zoom(xforce, scale, order=1)
         ymap = scipy.ndimage.zoom(yforce, scale, order=1)
         zmap = scipy.ndimage.zoom(zforce, scale, order=1)
+        self.fmax = np.nanmax([xmap, ymap, zmap])
 
         data = np.empty(np.size(xmap),
                         dtype=[('xmap', 'f4'), ('ymap', 'f4'), ('zmap', 'f4')])
@@ -121,17 +121,22 @@ class HFRLoads:
 
     def make_pointloads(self):
         # Check NodeIDs and xmaps the same size??
-
+        import numpy as np
         nodeIDs = self.nodeIDs
 
         NODEFILE = open('PointLoads.dyn', 'w')
         NODEFILE.write("*LOAD_NODE_POINT\n")
 
+        def writenode(nodeID, i, maptype, dir):
+            val = self.interps[maptype][i]
+            if not np.isnan(val) and val > (0.01*self.fmax):
+                NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
+                # NID, [1,2,3], LCID, MAGNITUDE, 0
+
         for i, nodeID in enumerate(nodeIDs['id']):
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 1, self.LCID, self.interps['xmap'][i], 0))
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 2, self.LCID, self.interps['ymap'][i], 0))
-            NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, 3, self.LCID, self.interps['zmap'][i], 0))
-            # NID, [1,2,3], LCID, MAGNITUDE, 0
+            writenode(nodeID, i, 'xmap', 1)
+            writenode(nodeID, i, 'ymap', 2)
+            writenode(nodeID, i, 'zmap', 3)
 
         NODEFILE.write("*END\n")
         NODEFILE.close()
