@@ -139,7 +139,6 @@ class HFRLoads:
                 writenode(nodeID, i, 'zmap', 3)
 
             NODEFILE.write("*END\n")
-            NODEFILE.close()
 
 if __name__ == "__main__":
     main()
