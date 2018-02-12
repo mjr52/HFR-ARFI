@@ -1,4 +1,6 @@
 def main():
+    import os
+    os.environ['HOME'] = 'C:/Users/mringel/Desktop/Projects_US/'
     p = HFRLoads('u_ax_3ap.mat', 'u_elev_3ap.mat', 'u_lat_3ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
     p.load_mats()
     p.make_mesh()
@@ -16,16 +18,17 @@ def main():
 class HFRLoads:
 
     def __init__(self, f_axmat, f_elevmat, f_latmat, axmat, elevmat, latmat,
-                 nodesdynfile="nodes.dyn", LCID=1, numElem = (150, 100, 500)):
-        self.f_axmat = f_axmat
-        self.f_elevmat = f_elevmat
-        self.f_latmat = f_latmat
-        self.axmat = axmat
-        self.elevmat = elevmat
-        self.latmat = latmat
-        self.LCID = LCID
-        self.nodesdynfile = nodesdynfile
-        self.numElem = numElem
+                 nodesdynfile="nodes.dyn", LCID=1, numElem = (10, 10, 10)):
+        import os
+
+        args = locals()
+        for k,v in args.items():
+            if type(v) is str:
+                try:
+                    os.path.isfile(v)
+                except FileNotFoundError:
+                    print("File doesn't exist")
+            setattr(self, k, v)
 
         self.nodeIDs = None
         self.xi = None
@@ -80,6 +83,8 @@ class HFRLoads:
         import os
         import numpy as np
 
+        HOME = os.getenv('HOME')
+        sys.path.append(HOME)
         from fem.mesh import fem_mesh as fm
         from fem.mesh import GenMesh as mesh
 
