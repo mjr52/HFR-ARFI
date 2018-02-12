@@ -42,40 +42,24 @@ class HFRLoads:
 
     def load_mats(self):
         #LOAD MATLAB FORCE DATA
-        import scipy.io as sio
         import numpy as np
 
-        zforce = sio.loadmat(self.f_axmat, matlab_compatible=True)[self.f_axmat[:-4]]
-        yforce = sio.loadmat(self.f_elevmat, matlab_compatible=True)[self.f_elevmat[:-4]]
-        xforce = sio.loadmat(self.f_latmat, matlab_compatible=True)[self.f_latmat[:-4]]
+        def matload(filename):
+            import scipy.io as sio
+            return sio.loadmat(filename)[filename[:-4]]
 
-        z = sio.loadmat(self.axmat, matlab_compatible=True)[self.axmat[:-4]]
-        y = sio.loadmat(self.elevmat, matlab_compatible=True)[self.elevmat[:-4]]
-        x = sio.loadmat(self.latmat, matlab_compatible=True)[self.latmat[:-4]]
+        zforce, yforce, xforce = matload(self.f_axmat), matload(self.f_elevmat), matload(self.f_latmat)
+        z, y, x = matload(self.axmat), matload(self.elevmat), matload(self.latmat)
 
         # SHRINK X AND Y DIRECTIONS FOR Q SYMMETRY
-        ylocs = np.where(y>=0)[1]
-        xlocs = np.where(x>=0)[1]
-        zforce = zforce[0::1, xlocs, :]
-        zforce = zforce[:, 0::1, ylocs]
-        yforce = yforce[0::1, xlocs, :]
-        yforce = yforce[:, 0::1, ylocs]
-        xforce = xforce[0::1, xlocs, :]
-        xforce = xforce[:, 0::1, ylocs]
-        x = x[x>=0]
-        y = y[y>=0]
-        z = z.flatten()
-        x = x[0::1]
-        z = z[0::1]
-        z = z - max(z)
+        ylocs, xlocs = np.min(np.where(y>=0)[1]), np.min(np.where(x>=0)[1])
+        zforce, yforce, xforce = zforce[:, xlocs:, ylocs:], yforce[:, xlocs:, ylocs:], xforce[:, xlocs:, ylocs:]
 
-        self.xforce = xforce
-        self.yforce = yforce
-        self.zforce = zforce
-        self.xmax = np.max(x)
-        self.ymax = np.max(y)
-        self.zmin = np.min(z)
+        x, y = x[x>=0], y[y>=0]
+        z = z[:] - np.max(z[:])
 
+        self.xforce, self.yforce, self.zforce = xforce, yforce, zforce
+        self.xmax, self.ymax, self.zmin = np.max(x), np.max(y), np.min(z)
 
     def make_mesh(self):
         # MAKE MESH
