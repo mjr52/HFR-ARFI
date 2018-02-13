@@ -1,6 +1,6 @@
 import sys
-import os
-import bc
+sys.path.append("..")
+from fem.mesh import bc
 import fem_mesh as fm
 import GenMesh as mesh
 

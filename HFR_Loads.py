@@ -1,6 +1,4 @@
 def main():
-    import os
-    os.environ['HOME'] = 'C:/Users/mringel/Desktop/Projects_US/'
     p = HFRLoads('u_ax_3ap.mat', 'u_elev_3ap.mat', 'u_lat_3ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
     p.load_mats()
     p.make_mesh()
@@ -65,12 +63,9 @@ class HFRLoads:
     def make_mesh(self):
         # MAKE MESH
         import sys
-        import os
         import numpy as np
 
-        HOME = os.getenv('HOME')
-        sys.path.append(HOME)
-
+        sys.path.append("..")
         from fem.mesh import fem_mesh as fm
         from fem.mesh import GenMesh as mesh
 
