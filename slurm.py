@@ -20,15 +20,15 @@ NTASKS = os.getenv('SLURM_NTASKS', '8')
 
 os.system("ls-dyna-d ncpu={} i={}".format(NTASKS, DYNADECK))
 
-os.system("rm d3*")
+#os.system("rm d3*")
 
 create_disp_dat()
 
 create_res_sim_mat(DYNADECK)
 create_res_sim_mat(DYNADECK, disp_comp=1, disp_scale=1e4, ressim="res_sim_radial.mat")
 
-if os.path.isfile("res_sim.mat"):
-    os.system("rm nodout")
+#if os.path.isfile("res_sim.mat"):
+#    os.system("rm nodout")
 
 os.system('xz -T0 -v disp.dat')
 

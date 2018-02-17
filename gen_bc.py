@@ -13,10 +13,10 @@ mesh.writeElems(numElem)
 '''
 
 # setup quarter symmetry condition
-pml_elems = ((5, 0), (0, 5), (5, 5))
-face_constraints = (('1,1,1,1,1,1', '1,0,0,0,1,1'),
+pml_elems = ((0, 5), (0, 5), (5, 5))
+face_constraints = (('1,0,0,0,1,1', '1,1,1,1,1,1'),
                     ('0,1,0,1,0,1', '1,1,1,1,1,1'),
                     ('1,1,1,1,1,1', '1,1,1,1,1,1'))
-edge_constraints = (((0, 1), (1, 0), (0, 0)), '1,1,0,1,1,1')
+edge_constraints = (((1, 0), (1, 0), (0, 0)), '1,1,0,1,1,1')
 
 bc.apply_pml(pml_elems, face_constraints, edge_constraints)

@@ -16,7 +16,7 @@ def main():
 class HFRLoads:
 
     def __init__(self, f_axmat, f_elevmat, f_latmat, axmat, elevmat, latmat,
-                 nodesdynfile="nodes.dyn", LCID=1, numElem = (10, 10, 50)):
+                 nodesdynfile="nodes.dyn", LCID=1, numElem = (40, 25, 50)):
         import os
 
         args = locals()
