@@ -54,6 +54,13 @@ class HFRLoads:
         ylocs, xlocs = np.min(np.where(y>=0)[1]), np.min(np.where(x>=0)[1])
         zforce, yforce, xforce = zforce[:, xlocs:, ylocs:], yforce[:, xlocs:, ylocs:], xforce[:, xlocs:, ylocs:]
 
+        # DIVIDE FACE FORCE MAGNITUDES FOR Q SYMMETRY
+        xforce[:, :, 0], yforce[:, :, 0], zforce[:, :, 0] = xforce[:, :, 0]/2, yforce[:, :, 0]/2, zforce[:, :, 0]/2
+        xforce[:, 0, :], yforce[:, 0, :], zforce[:, 0, :] = xforce[:, 0, :]/2, yforce[:, 0, :]/2, zforce[:, 0, :]/2
+
+        # INVERT ZFORCE MAGNITUDE
+        zforce = -zforce
+
         x, y = x[x>=0], y[y>=0]
         z = z[:] - np.max(z[:])
 
