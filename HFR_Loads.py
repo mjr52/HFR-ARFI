@@ -108,7 +108,7 @@ class HFRLoads:
         xmap = scipy.ndimage.zoom(xforce, scale, order=1)
         ymap = scipy.ndimage.zoom(yforce, scale, order=1)
         zmap = scipy.ndimage.zoom(zforce, scale, order=1)
-        self.fmax = np.nanmax([xmap, ymap, zmap])
+        self.fmax = np.nanmax(np.abs(([xmap, ymap, zmap])))
 
         data = np.empty(np.size(xmap),
                         dtype=[('xmap', 'f4'), ('ymap', 'f4'), ('zmap', 'f4')])
@@ -132,7 +132,7 @@ class HFRLoads:
 
             def writenode(nodeID, i, maptype, dir):
                 val = self.interps[maptype][i]
-                if not np.isnan(val) and val > (0.01*self.fmax):
+                if not np.isnan(val) and np.abs(val) > (0.01*self.fmax):
                     NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
                     # NID, [1,2,3], LCID, MAGNITUDE, 0
 
