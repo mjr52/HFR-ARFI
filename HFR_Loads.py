@@ -61,6 +61,9 @@ class HFRLoads:
         # INVERT ZFORCE MAGNITUDE
         zforce = -zforce
 
+        # INVERT XFORCE MAGNITUDE
+        xforce = -xforce
+
         x, y = x[x>=0], y[y>=0]
         z = z[:] - np.max(z[:])
 
