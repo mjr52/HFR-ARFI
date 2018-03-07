@@ -84,7 +84,7 @@ class HFRLoads:
 
         pos = mesh.calc_node_pos((-self.ymax, 0.0, 0.0, self.xmax, self.zmin, 0.0), new_numElem)
         mesh.writeNodes(pos)
-        mesh.writeElems(self.numElem)
+        mesh.writeElems(new_numElem)
 
         self.nodeIDs = fm.load_nodeIDs_coords(self.nodesdynfile)
         self.xi = np.array([self.nodeIDs['x'], self.nodeIDs['y'], self.nodeIDs['z']]).T
