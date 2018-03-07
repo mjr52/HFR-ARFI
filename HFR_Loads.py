@@ -76,7 +76,13 @@ class HFRLoads:
         from fem.mesh import fem_mesh as fm
         from fem.mesh import GenMesh as mesh
 
-        pos = mesh.calc_node_pos((0.0, self.xmax, 0.0, self.ymax, self.zmin, 0.0), self.numElem)
+        # CHANGE XYZ COORDINATES
+        # x = 0 to -x, elev
+        # y = 0 to +y, lat
+        # z = 0 to -z, ax
+        new_numElem = (25, 40, 50)
+
+        pos = mesh.calc_node_pos((-self.ymax, 0.0, 0.0, self.xmax, self.zmin, 0.0), new_numElem)
         mesh.writeNodes(pos)
         mesh.writeElems(self.numElem)
 
