@@ -5,18 +5,13 @@ def main():
     p.load_interp()
     p.make_pointloads()
 
-    '''
-    from pointloads import PointLoads
-    s = PointLoads('PointLoads.dyn')
-    s.show_image_plane(ele_coord=0)
-    '''
     pass
 
 
 class HFRLoads:
 
     def __init__(self, f_axmat, f_elevmat, f_latmat, axmat, elevmat, latmat,
-                 nodesdynfile="nodes.dyn", LCID=1, numElem = (40, 25, 50)):
+                 nodesdynfile="nodes.dyn", LCID=1, numElem = (25, 40, 50)):
         import os
 
         args = locals()
@@ -47,25 +42,25 @@ class HFRLoads:
             import scipy.io as sio
             return sio.loadmat(filename)[filename[:-4]]
 
-        zforce, yforce, xforce = matload(self.f_axmat), matload(self.f_elevmat), matload(self.f_latmat)
-        z, y, x = matload(self.axmat), matload(self.elevmat), matload(self.latmat)
+        zforce, xforce, yforce = matload(self.f_axmat), matload(self.f_elevmat), matload(self.f_latmat)
+        z, x, y = matload(self.axmat), matload(self.elevmat), matload(self.latmat)
 
         # SHRINK X AND Y DIRECTIONS FOR Q SYMMETRY
-        ylocs, xlocs = np.min(np.where(y>=0)[1]), np.min(np.where(x>=0)[1])
-        zforce, yforce, xforce = zforce[:, xlocs:, ylocs:], yforce[:, xlocs:, ylocs:], xforce[:, xlocs:, ylocs:]
+        ylocs, xlocs = np.min(np.where(y>=0)[1]), np.max(np.where(x<=0)[1])
+        zforce, yforce, xforce = zforce[:, ylocs:, :xlocs], yforce[:, ylocs:, :xlocs], xforce[:, ylocs:, :xlocs]
 
         # DIVIDE FACE FORCE MAGNITUDES FOR Q SYMMETRY
-        xforce[:, :, 0], yforce[:, :, 0], zforce[:, :, 0] = xforce[:, :, 0]/2, yforce[:, :, 0]/2, zforce[:, :, 0]/2
+        xforce[:, :, -1], yforce[:, :, -1], zforce[:, :, -1] = xforce[:, :, -1]/2, yforce[:, :, -1]/2, zforce[:, :, -1]/2
         xforce[:, 0, :], yforce[:, 0, :], zforce[:, 0, :] = xforce[:, 0, :]/2, yforce[:, 0, :]/2, zforce[:, 0, :]/2
 
         # INVERT FORCE MAGNITUDE
-        xforce = -xforce
+        zforce = -zforce
 
-        x, y = x[x>=0], y[y>=0]
-        z = z[:] - np.max(z[:])
+        x, y = x[x<=0], y[y>=0]
+        z = -z
 
         self.xforce, self.yforce, self.zforce = xforce, yforce, zforce
-        self.xmax, self.ymax, self.zmin = np.max(x), np.max(y), np.min(z)
+        self.xmin, self.ymax, self.zmin = np.min(x), np.max(y), np.min(z)
 
     def make_mesh(self):
         # MAKE MESH
@@ -80,11 +75,10 @@ class HFRLoads:
         # x = 0 to -x, elev
         # y = 0 to +y, lat
         # z = 0 to -z, ax
-        new_numElem = (25, 40, 50)
 
-        pos = mesh.calc_node_pos((-self.ymax, 0.0, 0.0, self.xmax, self.zmin, 0.0), new_numElem)
+        pos = mesh.calc_node_pos((self.xmin, 0.0, 0.0, self.ymax, self.zmin, 0.0), self.numElem)
         mesh.writeNodes(pos)
-        mesh.writeElems(new_numElem)
+        mesh.writeElems(self.numElem)
 
         self.nodeIDs = fm.load_nodeIDs_coords(self.nodesdynfile)
         self.xi = np.array([self.nodeIDs['x'], self.nodeIDs['y'], self.nodeIDs['z']]).T
@@ -92,24 +86,11 @@ class HFRLoads:
     def load_interp(self):
         import numpy as np
         import scipy.ndimage
-        '''
-        # THIS IS TOO SLOW
-        # ans = scipy.interpolate.griddata(points, xforce, xi, method='linear')
-
-        vtx, wts = Fast_Interp.interp_weights(self.points, self.xi)
-
-        self.xmap = Fast_Interp.interpolate(self.xforce, vtx, wts)
-        self.ymap = Fast_Interp.interpolate(self.yforce, vtx, wts)
-        self.zmap = Fast_Interp.interpolate(self.zforce, vtx, wts)
-
-        # data = {'xmap': xmap, 'ymap': ymap, 'zmap': zmap}
-        # sio.savemat('newloads', data)
-        '''
 
         xforce, yforce, zforce  = self.xforce, self.yforce, self.zforce
         xnode, ynode, znode = self.numElem
 
-        scale = ((znode+1)/np.shape(xforce)[0], (xnode+1)/np.shape(xforce)[1], (ynode+1)/np.shape(xforce)[2])
+        scale = ((znode+1)/np.shape(xforce)[0], (ynode+1)/np.shape(xforce)[1], (xnode+1)/np.shape(xforce)[2])
 
         xmap = scipy.ndimage.zoom(xforce, scale, order=1)
         ymap = scipy.ndimage.zoom(yforce, scale, order=1)
@@ -122,14 +103,14 @@ class HFRLoads:
         for zp in np.arange(znode + 1):
             for yp in np.arange(ynode + 1):
                 for xp in np.arange(xnode + 1):
+                    xpr = xnode - xp
                     zpr = znode - zp
-                    data[i] = (xmap[zpr, xp, yp], ymap[zpr, xp, yp], zmap[zpr, xp, yp])
+                    data[i] = (xmap[zpr, yp, xpr], ymap[zpr, yp, xpr], zmap[zpr, yp, xpr])
                     i = i + 1
 
         self.interps = data
 
     def make_pointloads(self):
-        # Check NodeIDs and xmaps the same size??
         import numpy as np
         nodeIDs = self.nodeIDs
 
