@@ -120,7 +120,7 @@ class HFRLoads:
             def writenode(nodeID, i, maptype, dir):
                 val = self.interps[maptype][i]
                 if not np.isnan(val) and np.abs(val) > (0.01*self.fmax):
-                    NODEFILE.write("%i,%i,%i,%.6f,%i\n" % (nodeID, dir, self.LCID, self.interps[maptype][i], 0))
+                    NODEFILE.write("%i,%i,%i,%.6f\n" % (nodeID, dir, self.LCID, self.interps[maptype][i]))
                     # NID, [1,2,3], LCID, MAGNITUDE, 0
 
             for i, nodeID in enumerate(nodeIDs['id']):
