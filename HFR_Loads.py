@@ -54,7 +54,7 @@ class HFRLoads:
         xforce[:, 0, :], yforce[:, 0, :], zforce[:, 0, :] = xforce[:, 0, :]/2, yforce[:, 0, :]/2, zforce[:, 0, :]/2
 
         # INVERT FORCE MAGNITUDE
-        zforce = -zforce
+        yforce = -yforce
 
         x, y = x[x<=0], y[y>=0]
         z = -z
