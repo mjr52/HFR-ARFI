@@ -47,6 +47,7 @@ class HFRLoads:
 
         # SHRINK X AND Y DIRECTIONS FOR Q SYMMETRY
         ylocs, xlocs = np.min(np.where(y>=0)[1]), np.max(np.where(x<=0)[1])
+        xlocs = xlocs + 1
         zforce, yforce, xforce = zforce[:, ylocs:, :xlocs], yforce[:, ylocs:, :xlocs], xforce[:, ylocs:, :xlocs]
 
         # DIVIDE FACE FORCE MAGNITUDES FOR Q SYMMETRY
@@ -103,9 +104,7 @@ class HFRLoads:
         for zp in np.arange(znode + 1):
             for yp in np.arange(ynode + 1):
                 for xp in np.arange(xnode + 1):
-                    xpr = xnode - xp
-                    zpr = znode - zp
-                    data[i] = (xmap[zpr, yp, xpr], ymap[zpr, yp, xpr], zmap[zpr, yp, xpr])
+                    data[i] = (xmap[zp, yp, xp], ymap[zp, yp, xp], zmap[zp, yp, xp])
                     i = i + 1
 
         self.interps = data
