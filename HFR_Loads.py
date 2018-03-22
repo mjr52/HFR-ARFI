@@ -104,7 +104,8 @@ class HFRLoads:
         for zp in np.arange(znode + 1):
             for yp in np.arange(ynode + 1):
                 for xp in np.arange(xnode + 1):
-                    data[i] = (xmap[zp, yp, xp], ymap[zp, yp, xp], zmap[zp, yp, xp])
+                    zpr = znode - zp
+                    data[i] = (xmap[zpr, yp, xp], ymap[zpr, yp, xp], zmap[zpr, yp, xp])
                     i = i + 1
 
         self.interps = data
