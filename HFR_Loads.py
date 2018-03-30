@@ -1,5 +1,5 @@
 def main():
-    p = HFRLoads('u_ax_3ap.mat', 'u_elev_3ap.mat', 'u_lat_3ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
+    p = HFRLoads('u_ax_34ap.mat', 'u_elev_34ap.mat', 'u_lat_34ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
     p.load_mats()
     p.make_mesh()
     p.load_interp()
