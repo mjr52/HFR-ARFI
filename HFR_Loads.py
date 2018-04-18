@@ -1,6 +1,5 @@
 def main():
-    p = HFRLoads('I_ax_34ap.mat', 'I_elev_34ap.mat', 'I_lat_34ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
-
+    p = HFRLoads('u_ax_34ap.mat', 'u_elev_34ap.mat', 'u_lat_34ap.mat', 'axial.mat', 'elev.mat', 'lat.mat')
     p.load_mats()
     p.make_mesh()
     p.load_interp()
@@ -44,7 +43,8 @@ class HFRLoads:
             return sio.loadmat(filename)[filename[:-4]]
 
         zforce, xforce, yforce = matload(self.f_axmat), matload(self.f_elevmat), matload(self.f_latmat)
-        z, x, y = matload(self.axmat), matload(self.elevmat), matload(self.latmat)
+        z, x, y = matload(self.axmat)*0.1, matload(self.elevmat)*0.1, matload(self.latmat)*0.1
+	# CHANGED TO CM NOT MM
 
         # SHRINK X AND Y DIRECTIONS FOR Q SYMMETRY
         ylocs, xlocs = np.min(np.where(y>=0)[1]), np.max(np.where(x<=0)[1])
