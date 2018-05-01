@@ -13,6 +13,9 @@
 * `lat.mat` should be [1 X lat]
 * `elev.mat` should be [1 X elev]
 
+## Setup hfr_arfi_original.dyn
+* Can edit mesh stiffness, timesteps, DYNA setup here
+
 ## Setup HFR_Loads.py
 * Line 2 will coorespond to the 6 Matlab file names
 * Line 14 will set mesh dimensions (elev, lat, axial)
