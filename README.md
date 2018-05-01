@@ -1,12 +1,21 @@
 # HFR-ARFI
 
-## How to Setup Sims
-* Run `HFR_Loads.py` to generate `PointLoads.dyn`.
-* Run `gen_bc.py` to generate boundary condition files:
-  + `bc.dyn`
-  + `elems_pml.dyn`
-* `hfr_arfi.dyn` will include all of the individual `*.dyn` files into the sim.
+## Necessary Matlab Files
+* `I_ax_34ap.mat` - Intensity matrix (axial direction) in W/cm^2
+* `I_lat_34ap.mat` - Intensity matrix (lat direction) in W/cm^2
+* `I_elev_34ap.mat` - Intensity matrix (elev direction) in W/cm^2
+* `axial.mat` - axial depths in mm
+* `lat.mat` - lateral depths in mm
+* `elev.mat` - elevation depths in mm
 
-## How to Run LS-DYNA
-* On the DCC, run the following: `PYTHONPATH=/work/mjr52 sbatch slurm.py`
-* This will create a `res_sim.mat` file from `nodout`.
+* All `I_*.mat` matricies should be the same size. [axial X lat X elev]
+* `axial.mat` should be [1 X axial]
+* `lat.mat` should be [1 X lat]
+* `elev.mat` should be [1 X elev]
+
+## Setup HFR_Loads.py
+* Line 2 will coorespond to the 6 Matlab file names
+* Line 14 will set mesh dimensions (elev, lat, axial)
+
+## Setup setup-n-run.py
+* Enter axial locations, sizes, and lesion stiffnesses in lists at beginning of file
