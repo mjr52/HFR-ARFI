@@ -1,4 +1,5 @@
 # HFR-ARFI
+To run sims - `python3 setup-n-run.py`
 
 ## Necessary Matlab Files
 * `I_ax_34ap.mat` - Intensity matrix (axial direction) in W/cm^2
